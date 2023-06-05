@@ -42,8 +42,8 @@ public class Main {
      * Метод инициализации игрового поля
      */
     private static void fieldInit() {
-        fieldSizeX = 7;
-        fieldSizeY = 5;
+        fieldSizeX = 10;
+        fieldSizeY = 8;
 
         field = new char[fieldSizeX][fieldSizeY];
         for (int x = 0; x < fieldSizeX; x++)
@@ -166,12 +166,22 @@ public class Main {
         }
     }
 
+    /**
+     * Метод проверки победы по горизонтали
+     *
+     * @param mark метка, отмечающая ход
+     * @return истина в случае победы, ложь в случае отсутсвия победы
+     */
     private static boolean horizontalWinCheck(char mark) {
         for (int i = 0; i < fieldSizeX; i++) {
             for (int j = 0; j < fieldSizeY; j++) {
-                int comboCount = 1;
+                int comboCount = 1; // инициализируем счетчик победной комбинации
+                // в цикле проходимся от 1 до необходимого для победы числа стоящих подряд символов,
+                // ограничивая сумму координаты по горизонтали и k размером поля по горизонтали
                 for (int k = 1; k <= BINGO_COUNT && i + k < fieldSizeX; k++)
                     if (mark == field[i][j] && mark == field[i + k][j])
+                        // увеличиваем счетчик победной комбинации,
+                        // в случае стоящих подряд двух одинаковых символов
                         comboCount++;
                     else
                         break;
@@ -182,12 +192,22 @@ public class Main {
         return false;
     }
 
+    /**
+     * Метод проверки победы по вертикали
+     *
+     * @param mark метка, отмечающая ход
+     * @return истина в случае победы, ложь в случае отсутсвия победы
+     */
     private static boolean verticalWinCheck(char mark) {
         for (int i = 0; i < fieldSizeX; i++) {
             for (int j = 0; j < fieldSizeY; j++) {
-                int comboCount = 1;
+                int comboCount = 1; // инициализируем счетчик победной комбинации
+                // в цикле проходимся от 1 до необходимого для победы числа стоящих подряд символов,
+                // ограничивая сумму координаты по вертикали и k размером поля по вертикали
                 for (int k = 1; k <= BINGO_COUNT && k + j < fieldSizeY; k++)
                     if (mark == field[i][j] && mark == field[i][j + k])
+                        // увеличиваем счетчик победной комбинации,
+                        // в случае стоящих подряд двух одинаковых символов
                         comboCount++;
                     else
                         break;
@@ -198,9 +218,19 @@ public class Main {
         return false;
     }
 
+    /**
+     * Метод проверки победы по диагонали
+     *
+     * @param mark метка, отмечающая ход
+     * @return истина в случае победы, ложь в случае отсутсвия победы
+     */
     private static boolean diagonalWinCheck(char mark) {
         for (int i = 0; i < fieldSizeX; i++)
             for (int j = 0; j < fieldSizeY; j++) {
+                // инициализируем счетчик победной комбинации для диагонали сверху-вперёд
+                // в цикле проходимся от 1 до необходимого для победы числа стоящих подряд символов,
+                // ограничивая сумму координаты по вертикали и k размером поля по вертикали
+                // и сумму координаты по горизонтали и k размером поля по горизонтали
                 int comboCountForward = 1;
                 for (int k = 1; k <= BINGO_COUNT && i + k < fieldSizeX && j + k < fieldSizeY; k++) {
                     if (mark == field[i][j] && mark == field[i + k][j + k])
@@ -210,6 +240,10 @@ public class Main {
                     if (comboCountForward == BINGO_COUNT)
                         return true;
                 }
+                // инициализируем счетчик победной комбинации для диагонали сверху-назад
+                // в цикле проходимся от 1 до необходимого для победы числа стоящих подряд символов,
+                // ограничивая сумму координаты по вертикали и k размером поля по вертикали
+                // и разность координаты по горизонтали и k нулём
                 int comboCountBack = 1;
                 for (int k = 1; k <= BINGO_COUNT && i - k >= 0 && j + k < fieldSizeY; k++) {
                     if (mark == field[i][j] && mark == field[i - k][j + k])
