@@ -8,6 +8,13 @@ public class Main {
     private static final char AI_MARK = '●';
     private static final char EMPTY_CELL = '□';
     private static final int BINGO_COUNT = 4;
+
+    // Попробовал придумать переменную для симуляции случайной ошибки компьютера.
+    // Чем больше значение этой переменной, тем менее вероятна ситуация ошибки при ходе компьютера.
+    // Можно попробовать внедрить в метод хода ИИ, при блокировке хода человека,
+    // два рандома (с этой переменной в качестве аргумента),
+    // при совпадении значения которых компьютер будет делать "невнимательный" ход
+    private static final int DIFFICULT_VALUE = 100;
     private static final Scanner SCAN = new Scanner(System.in);
     private static final Random RANDOM = new Random();
     private static char[][] field;
@@ -26,7 +33,7 @@ public class Main {
                 currentTurn++;
                 if (endGameCheck(HUMAN_MARK, currentTurn, "Поздравляю! Вы победили! :)"))
                     break;
-                aiFoolishTurn();
+                aiTurn();
                 fieldPrint();
                 currentTurn++;
                 if (endGameCheck(AI_MARK, currentTurn, "Поздравляю! Вы проиграли! :)"))
@@ -114,17 +121,6 @@ public class Main {
         field[x][y] = HUMAN_MARK;
     }
 
-    /**
-     * Метод "невнимательного" хода компьютера.
-     */
-    private static void aiFoolishTurn() {
-        int x, y;
-        do {
-            x = RANDOM.nextInt(fieldSizeX);
-            y = RANDOM.nextInt(fieldSizeY);
-        } while (!emptyCellCheck(x, y));
-        field[x][y] = AI_MARK;
-    }
 
     /**
      * Метод проверки состояния игры на предмет победы одного из играющих (человек/комп).
@@ -254,6 +250,125 @@ public class Main {
                         return true;
                 }
             }
+        return false;
+    }
+
+    private static void aiTurn() {
+        if (aiHorizontalBlock(BINGO_COUNT-1) || aiVerticalBlock(BINGO_COUNT-1))
+            return;
+        else if (aiHorizontalBlock(BINGO_COUNT-2) || aiVerticalBlock(BINGO_COUNT-2))
+            return;
+        else
+            aiRandomTurn();
+
+    }
+
+
+    /**
+     * Метод "невнимательного" хода компьютера.
+     */
+    private static void aiRandomTurn() {
+        int x, y;
+        do {
+            x = RANDOM.nextInt(fieldSizeX);
+            y = RANDOM.nextInt(fieldSizeY);
+        } while (!emptyCellCheck(x, y));
+        field[x][y] = AI_MARK;
+    }
+
+    private static boolean aiHorizontalBlock(int bingo) {
+        for (int i = 0; i < fieldSizeX; i++) {
+            for (int j = 0; j < fieldSizeY; j++) {
+                int comboForward = 1;
+                // Щупаем на возможность блокировки с правой стороны
+                for (int k = 1; k <= bingo && i + k < fieldSizeX; k++) {
+                    if (HUMAN_MARK == field[i][j] && HUMAN_MARK == field[i + k][j]) {
+                        comboForward++;
+                        if (comboForward == bingo
+                                && i + k + 1 < fieldSizeX
+                                && field[i + k + 1][j] == EMPTY_CELL) {
+
+                            // При совпадении двух рандомов будет сделан невнимательный ход.
+                            // В противном случае - блокировка
+                            if (RANDOM.nextInt(DIFFICULT_VALUE) == RANDOM.nextInt(DIFFICULT_VALUE))
+                                aiRandomTurn();
+                            else
+                                field[i + k + 1][j] = AI_MARK;
+                            return true;
+                        }
+                    } else
+                        break;
+                }
+                int comboBack = 1;
+                // Щупаем на возможность блокировки с левой стороны
+                for (int k = 1; k <= bingo && i - k >= 0; k++) {
+                    if (HUMAN_MARK == field[i][j] && HUMAN_MARK == field[i - k][j]) {
+                        comboBack++;
+                        if (comboBack == bingo
+                                && i - k - 1 >= 0
+                                && field[i - k - 1][j] == EMPTY_CELL) {
+
+                            // При совпадении двух рандомов будет сделан невнимательный ход.
+                            // В противном случае - блокировка
+                            if (RANDOM.nextInt(DIFFICULT_VALUE) == RANDOM.nextInt(DIFFICULT_VALUE))
+                                aiRandomTurn();
+                            else
+                                field[i - k - 1][j] = AI_MARK;
+                            return true;
+                        }
+                    } else
+                        break;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean aiVerticalBlock(int bingo) {
+        for (int i = 0; i < fieldSizeX; i++) {
+            for (int j = 0; j < fieldSizeY; j++) {
+
+                int comboForward = 1;
+                // Щупаем на возможность блокировки снизу
+                for (int k = 1; k <= bingo && k + j < fieldSizeY; k++)
+                    if (HUMAN_MARK == field[i][j] && HUMAN_MARK == field[i][j + k]) {
+                        comboForward++;
+                        if (comboForward == bingo
+                                && j + k + 1 < fieldSizeY
+                                && field[i][j + k + 1] == EMPTY_CELL) {
+
+                            // При совпадении двух рандомов будет сделан невнимательный ход.
+                            // В противном случае - блокировка
+                            if (RANDOM.nextInt(DIFFICULT_VALUE) == RANDOM.nextInt(DIFFICULT_VALUE))
+                                aiRandomTurn();
+                            else
+                                field[i][j + k + 1] = AI_MARK;
+                            return true;
+                        }
+                    } else
+                        break;
+
+                int comboBack = 1;
+                // Щупаем на возможность блокировки сверху
+                for (int k = 1; k <= bingo && j - k >= 0; k++)
+                    if (HUMAN_MARK == field[i][j] && HUMAN_MARK == field[i][j - k]) {
+                        comboBack++;
+                        if (comboBack == bingo
+                                && j - k - 1 >= 0
+                                && field[i][j - k - 1] == EMPTY_CELL) {
+
+                            // При совпадении двух рандомов будет сделан невнимательный ход.
+                            // В противном случае - блокировка
+                            if (RANDOM.nextInt(DIFFICULT_VALUE) == RANDOM.nextInt(DIFFICULT_VALUE))
+                                aiRandomTurn();
+                            else
+                                field[i][j - k - 1] = AI_MARK;
+                            return true;
+                        }
+                    } else
+                        break;
+            }
+        }
         return false;
     }
 
