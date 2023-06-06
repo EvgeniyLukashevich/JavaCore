@@ -14,7 +14,7 @@ public class Main {
     // Можно попробовать внедрить в метод хода ИИ, при блокировке хода человека,
     // два рандома (с этой переменной в качестве аргумента),
     // при совпадении значения которых компьютер будет делать "невнимательный" ход
-    private static final int DIFFICULT_VALUE = 100;
+    private static final int DIFFICULT_VALUE = 5;
     private static final Scanner SCAN = new Scanner(System.in);
     private static final Random RANDOM = new Random();
     private static char[][] field;
@@ -143,7 +143,7 @@ public class Main {
     }
 
     /**
-     * Метод проверки состояния игры.
+     * Общий метод проверки состояния игры.
      *
      * @param mark        метка, отмечающая ход.
      * @param currentTurn порядковый номер текущего хода.
@@ -172,6 +172,7 @@ public class Main {
         for (int i = 0; i < fieldSizeX; i++) {
             for (int j = 0; j < fieldSizeY; j++) {
                 int comboCount = 1; // Инициализируем счетчик победной комбинации.
+
                 // В цикле проходимся от 1 до необходимого для победы числа стоящих подряд символов,
                 // ограничивая сумму координаты по горизонтали и k размером поля по горизонтали.
                 for (int k = 1; k <= BINGO_COUNT && i + k < fieldSizeX; k++)
@@ -198,6 +199,7 @@ public class Main {
         for (int i = 0; i < fieldSizeX; i++) {
             for (int j = 0; j < fieldSizeY; j++) {
                 int comboCount = 1; // Инициализируем счетчик победной комбинации.
+
                 // В цикле проходимся от 1 до необходимого для победы числа стоящих подряд символов,
                 // ограничивая сумму координаты по вертикали и k размером поля по вертикали.
                 for (int k = 1; k <= BINGO_COUNT && k + j < fieldSizeY; k++)
@@ -223,6 +225,7 @@ public class Main {
     private static boolean diagonalWinCheck(char mark) {
         for (int i = 0; i < fieldSizeX; i++)
             for (int j = 0; j < fieldSizeY; j++) {
+
                 // Инициализируем счетчик победной комбинации для диагонали сверху-вперёд.
                 // В цикле проходимся от 1 до необходимого для победы числа стоящих подряд символов,
                 // ограничивая сумму координаты по вертикали и k размером поля по вертикали
@@ -236,6 +239,7 @@ public class Main {
                     if (comboCountForward == BINGO_COUNT)
                         return true;
                 }
+
                 // Инициализируем счетчик победной комбинации для диагонали сверху-назад.
                 // В цикле проходимся от 1 до необходимого для победы числа стоящих подряд символов,
                 // ограничивая сумму координаты по вертикали и k размером поля по вертикали
@@ -254,15 +258,25 @@ public class Main {
     }
 
     private static void aiTurn() {
-        if (aiHorizontalBlock(BINGO_COUNT-1) || aiVerticalBlock(BINGO_COUNT-1))
+        // Первоочередно комп будет проверять и блокировать предвыигрышную комбинацию
+        if (aiHorizontalBlock(BINGO_COUNT - 1) ||
+                aiVerticalBlock(BINGO_COUNT - 1) ||
+                aiDiagonalBlock(BINGO_COUNT - 1))
             return;
-        else if (aiHorizontalBlock(BINGO_COUNT-2) || aiVerticalBlock(BINGO_COUNT-2))
+
+            // Во вторую очередь будет проверять и блокировать предпредвыигрышную комбинацию,
+            // чтобы, если игрок строит комбинацию в середине поля,
+            // была возможность заблокировать его с двух сторон.
+        else if (aiHorizontalBlock(BINGO_COUNT - 2) ||
+                aiVerticalBlock(BINGO_COUNT - 2) ||
+                aiDiagonalBlock(BINGO_COUNT - 2))
             return;
+
+            // В остальных случаях - рандомный ход
         else
             aiRandomTurn();
 
     }
-
 
     /**
      * Метод "невнимательного" хода компьютера.
@@ -275,6 +289,106 @@ public class Main {
         } while (!emptyCellCheck(x, y));
         field[x][y] = AI_MARK;
     }
+
+    /**
+     * Метод блокировки победы игрока по горизонтали.
+     *
+     * @param bingo число стоящих подряд символов, которое компьютер будет принимать за выигрышную комбинацию.
+     * @return истину при обнаружении победной комбинации.
+     */
+    private static boolean aiHorizontalBlock(int bingo) {
+        for (int i = 0; i < fieldSizeX; i++) {
+            for (int j = 0; j < fieldSizeY; j++) {
+                if (checkCombo(bingo, i, j, 1, 0) ||
+                        checkCombo(bingo, i, j, -1, 0)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Метод блокировки победы игрока по вертикали.
+     *
+     * @param bingo число стоящих подряд символов, которое компьютер будет принимать за выигрышную комбинацию.
+     * @return истину при обнаружении победной комбинации.
+     */
+    private static boolean aiVerticalBlock(int bingo) {
+        for (int i = 0; i < fieldSizeX; i++) {
+            for (int j = 0; j < fieldSizeY; j++) {
+                if (checkCombo(bingo, i, j, 0, 1) ||
+                        checkCombo(bingo, i, j, 0, -1)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Метод блокировки победы игрока по диагоналям.
+     *
+     * @param bingo число стоящих подряд символов, которое компьютер будет принимать за выигрышную комбинацию.
+     * @return истину при обнаружении победной комбинации.
+     */
+    private static boolean aiDiagonalBlock(int bingo) {
+        for (int i = 0; i < fieldSizeX; i++) {
+            for (int j = 0; j < fieldSizeY; j++) {
+                if (checkCombo(bingo, i, j, 1, 1) ||
+                        checkCombo(bingo, i, j, -1, 1)
+                        || checkCombo(bingo, i, j, 1, -1)
+                        || checkCombo(bingo, i, j, -1, -1)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Попробовал написать вспомогательный метод для блокировок компьютера, когда код начал сильно разрастаться.
+     *
+     * @param bingo      число стоящих подряд символов, которое компьютер будет принимать за выигрышную комбинацию.
+     * @param i          индекс внешнего слоя массива (горизонталь игрового поля).
+     * @param j          индекс внутренного слоя массива (вертикаль игрового поля).
+     * @param directionX направление по горизонтали (1 - вперед, -1 - назад).
+     * @param directionY направление по вертикали (1 - вперед, -1 - назад).
+     * @return истину при обнаружении победной комбинации.
+     */
+    private static boolean checkCombo(int bingo, int i, int j, int directionX, int directionY) {
+        int combo = 0;
+        // Прощупываем на победные комбинации по направлениям, заданным аргументами
+        for (int k = 0; k < bingo &&
+                i + k * directionX >= 0 &&
+                i + k * directionX < fieldSizeX &&
+                j + k * directionY >= 0
+                && j + k * directionY < fieldSizeY; k++) {
+            if (HUMAN_MARK == field[i][j] && HUMAN_MARK == field[i + k * directionX][j + k * directionY]) {
+                combo++;
+                if (combo == bingo &&
+                        i + (k + 1) * directionX >= 0 && i + (k + 1) * directionX < fieldSizeX &&
+                        j + (k + 1) * directionY >= 0 && j + (k + 1) * directionY < fieldSizeY &&
+                        field[i + (k + 1) * directionX][j + (k + 1) * directionY] == EMPTY_CELL) {
+
+                    // При совпадении двух рандомов будет сделан невнимательный ход.
+                    // В противном случае - блокировка
+                    if (RANDOM.nextInt(DIFFICULT_VALUE) == RANDOM.nextInt(DIFFICULT_VALUE)) {
+                        aiRandomTurn();
+                    } else {
+                        field[i + (k + 1) * directionX][j + (k + 1) * directionY] = AI_MARK;
+                    }
+                    return true;
+                }
+            } else {
+                break;
+            }
+        }
+        return false;
+    }
+
+
+    /* Первый вариант методов блокировки
 
     private static boolean aiHorizontalBlock(int bingo) {
         for (int i = 0; i < fieldSizeX; i++) {
@@ -371,6 +485,6 @@ public class Main {
         }
         return false;
     }
-
+     */
 
 }
