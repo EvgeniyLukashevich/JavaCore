@@ -23,7 +23,7 @@ public class Main {
 
 
     public static void main(String[] args) {
-        Integer currentTurn = 0;
+        Integer currentTurn = 0; // счетчик количества ходов (необходим для определения ничьи)
         while (true) {
             fieldInit();
             fieldPrint();
@@ -36,7 +36,7 @@ public class Main {
                 aiTurn();
                 fieldPrint();
                 currentTurn++;
-                if (endGameCheck(AI_MARK, currentTurn, "Поздравляю! Вы проиграли! :)"))
+                if (endGameCheck(AI_MARK, currentTurn, "Поздравляю! Вы проиграли! :D"))
                     break;
             }
             System.out.println("Повторим? (y - да)");
@@ -49,7 +49,7 @@ public class Main {
      * Метод инициализации игрового поля.
      */
     private static void fieldInit() {
-        fieldSizeX = 10;
+        fieldSizeX = 8;
         fieldSizeY = 8;
 
         field = new char[fieldSizeX][fieldSizeY];
