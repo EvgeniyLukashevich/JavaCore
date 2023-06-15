@@ -7,12 +7,13 @@ import java.util.Random;
 
 public class Main {
     private static final Random RANDOM = new Random();
+    private static String[][] myArray;
 
     public static void main(String[] args) {
 
 
         while (true) {
-            String[][] myArray = generate2dArray(4, 4);
+            myArray = generate2dArray(4, 4);
 
             // В случае полностью подходящего нам массива, прервём цикл.
             // В обратном случае будем отлавливать и обрабатывать исключения,
